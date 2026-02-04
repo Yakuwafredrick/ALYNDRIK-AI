@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+  <title>Alyndrik Lite | YakuwaTechonologies</title>
+  <!-- Linking Google Fonts For Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* --- Keypass Overlay Styles (consider moving these to style.css) --- */
+    #keypass-overlay {
+      user-select: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9); /* Darker overlay for focus */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999; /* Ensure it's on top of everything */
+      flex-direction: column;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Consistent font */
+    }
+
+    #keypass-prompt {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); /* More prominent shadow */
+      text-align: center;
+      max-width: 380px; /* Slightly adjusted max-width */
+      width: 90%;
+      color: #343a40;
+    }
+
+    #keypass-prompt h2 {
+      color: #007bff;
+      margin-bottom: 25px;
+      font-size: 2em;
+      font-weight: 600;
+    }
+
+    #keypass-prompt p.instruction {
+        font-size: 0.95em;
+        color: #6c757d;
+        margin-bottom: 20px;
+    }
+
+    #keypass-prompt input {
+      width: calc(100% - 30px); /* Account for padding */
+      padding: 14px 15px;
+      margin-bottom: 20px;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      font-size: 1.05em;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box; /* Include padding in width */
+      text-align: center; /* Center placeholder text */
+    }
+
+    #keypass-prompt input:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
+    }
+
+    #keypass-prompt button {
+      background-color: #007bff;
+      color: white;
+      padding: 14px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.15em;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      width: 100%;
+      font-weight: 500;
+    }
+
+    #keypass-prompt button:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+    }
+
+    #keypass-prompt button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    #keypass-error {
+      color: #dc3545;
+      margin-top: 15px;
+      font-weight: bold;
+      display: none; /* Hidden by default */
+      font-size: 0.95em;
+    }
+
+    /* Helper class to hide/show content */
+    .hidden {
+        display: none !important;
+    }
+  </style>
+</head>
+<body>
+    
+    <div id="pre-load">
+        <img src="loading-image/logo.gif" alt="Loading...">
+    </div>
+
+  <!-- Keypass Overlay -->
+  <div id="keypass-overlay">
+    <div id="keypass-prompt">
+      <h2>Analyse Images with Alyndrik Lite</h2>
+      <p class="instruction">Please enter the keypass code to proceed.</p>
+      <input type="password" id="keypass-input" placeholder="Keypass: ▫️▫️▫️▫️" required autofocus />
+      <button id="keypass-submit-button">Continue</button>
+
+      <p id="keypass-error">🚫 Incorrect keypass. Please try again.</p>
+            <p>Alyndrik Lite AI is Powered by YakuwaTechonologies</p>
+    </div>
+  </div>
+
+  <!-- Main Content - Initially hidden -->
+  <div id="main-content" class="hidden">
+    <header class="header">
+      <!-- Header Greetings -->
+      <h1 class="title">Alyndrik Lite</h1>
+      <p class="subtitle">Powered by YakuwaTechonologies</p>
+
+      <!-- Suggestion list -->
+      <ul class="suggestion-list">
+        <li class="suggestion">
+          <h4 class="text">Help me plan a game night with my 5 best friends for under $100.</h4>
+          <span class="icon material-symbols-rounded">draw</span>
+        </li>
+        <li class="suggestion">
+          <h4 class="text">What are the best tips to improve my public speaking skills?</h4>
+          <span class="icon material-symbols-rounded">lightbulb</span>
+        </li>
+        <li class="suggestion">
+          <h4 class="text">Can you help me find the latest news on web development?</h4>
+          <span class="icon material-symbols-rounded">explore</span>
+        </li>
+        <li class="suggestion">
+          <h4 class="text">Write JavaScript code to sum all elements in an array.</h4>
+          <span class="icon material-symbols-rounded">code</span>
+        </li>
+      </ul>
+    </header>
+
+    <!-- Chat List / Container -->
+    <div class="chat-list"></div>
+
+    <!-- Typing Area -->
+    <div class="typing-area">
+      <form action="#" class="typing-form">
+        <div class="input-wrapper">
+          <input type="text" placeholder="Enter a prompt here" class="typing-input" required />
+          <button id="send-message-button" class="icon material-symbols-rounded">send</button>
+        </div>
+        <div class="action-buttons">
+          <label for="file-upload" class="icon material-symbols-rounded" style="cursor: pointer; user-select: none;">attach_file</label>
+          <input type="file" id="file-upload" accept=".png,.jpg,.jpeg,.pdf,.mp4,.doc,.docx,.txt" multiple hidden />
+          <span id="delete-chat-button" class="icon material-symbols-rounded">delete</span>
+        </div>
+      </form>
+      <p class="disclaimer-text">
+        Alyndrik Lite may display inaccurate info, including about people, so double-check its responses.
+      </p>
+    </div>
+  </div>
+
+  <script src="chatInfo.js"></script>
+  <script src="script.js"></script>
+  <script>
+    // --- Keypass Logic ---
+const correctKeypass = "14142002"; // The required keypass
+const keypassOverlay = document.getElementById("keypass-overlay");
+const keypassInput = document.getElementById("keypass-input");
+const keypassSubmitButton = document.getElementById("keypass-submit-button");
+const keypassError = document.getElementById("keypass-error");
+const mainContent = document.getElementById("main-content");
+
+// Add an element for the loader
+const loaderElement = document.createElement('div');
+loaderElement.id = 'keypass-loader';
+loaderElement.style.cssText = `
+  width: 0%; /* Starts at 0% */
+  height: 5px; /* Thickness of the loader */
+  background-color: #007bff; /* Color of the loader */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  transition: width 8s ease-in-out; /* Animation for 8 seconds */
+  display: none; /* Initially hidden */
+`;
+keypassOverlay.querySelector('#keypass-prompt').appendChild(loaderElement); // Append to the prompt div
+
+// On page load, ensure main content is hidden and keypass overlay is visible
+document.addEventListener('DOMContentLoaded', () => {
+    mainContent.classList.add('hidden'); // Ensure main content is hidden initially
+    keypassOverlay.classList.remove('hidden'); // Ensure overlay is visible
+    keypassInput.focus(); // Automatically focus on the input field
+});
+
+// Event listener for the Unlock button
+keypassSubmitButton.addEventListener("click", () => {
+    const enteredKeypass = keypassInput.value.trim(); // Get and trim the input value
+
+    if (enteredKeypass === correctKeypass) {
+        keypassError.style.display = "none"; // Hide any previous error message
+
+        // --- Start the loader animation ---
+        loaderElement.style.display = 'block'; // Make the loader visible
+        requestAnimationFrame(() => { // Ensure the element is rendered before starting transition
+            loaderElement.style.width = '100%'; // Animate to 100%
+        });
+
+        // After the loader animation is complete, transition to the main content
+        setTimeout(() => {
+            keypassOverlay.classList.add("hidden"); // Hide the overlay
+            mainContent.classList.remove("hidden"); // Show the main content
+            loaderElement.style.display = 'none'; // Hide the loader after transition
+            loaderElement.style.width = '0%'; // Reset loader width for next time
+        }, 9000); // 9000 milliseconds = 9 seconds
+
+    } else {
+        keypassInput.value = ""; // Clear the input field
+        keypassError.style.display = "block"; // Show the error message
+        keypassInput.focus(); // Re-focus for user to try again
+    }
+});
+
+// Allow pressing Enter key to submit the keypass
+keypassInput.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault(); // Prevent default form submission behavior
+        keypassSubmitButton.click(); // Programmatically click the button
+    }
+});
+// --- End Keypass Logic ---
+
+  </script>
+</body>
+</html>
