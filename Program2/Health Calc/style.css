@@ -1,0 +1,233 @@
+/* Basic Reset & Box Sizing */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    user-select: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6; /* Light greyish background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full viewport height */
+    padding: 20px;
+}
+
+.container {
+    background-color: #ffffff; /* White card background */
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    padding: 40px;
+    width: 100%;
+    max-width: 600px; /* Max width for the container */
+    text-align: center;
+}
+
+h1 {
+    color: #2c3e50; /* Dark blue/grey for headings */
+    margin-bottom: 30px;
+    font-size: 2.2em;
+    font-weight: 600;
+}
+
+h2 {
+    color: #34495e;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.6em;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+    align-items: center;
+    gap: 10px; /* Space between label, input, and select */
+}
+
+.input-group label {
+    display: block; /* Make label take its own line */
+    color: #34495e;
+    font-weight: 500;
+    margin-bottom: 8px;
+    flex: 1 0 100%; /* Label takes full width on its own line */
+}
+
+.input-group input[type="number"], .input-group select {
+    width: calc(50% - 5px); /* Half width for input and select, with a gap */
+    padding: 12px 15px;
+    border: 1px solid #dcdcdc; /* Light grey border */
+    border-radius: 8px;
+    font-size: 1em;
+    color: #555;
+    transition: border-color 0.3s ease;
+    -webkit-appearance: none; /* Remove default browser styling for select */
+    -moz-appearance: none;
+    appearance: none;
+    background-color: #fdfdfd;
+}
+
+.input-group input[type="number"]:focus, .input-group select:focus {
+    border-color: #27ae60; /* Green border on focus */
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+}
+
+/* Specific styling for the new age inputs */
+.age-input-fields {
+    display: flex;
+    gap: 10px; /* Space between age input fields */
+    flex-wrap: wrap; /* Allow fields to wrap on smaller screens */
+    width: 100%; /* Take full width */
+}
+
+.age-input-fields input[type="number"] {
+    flex: 1; /* Distribute space equally among inputs */
+    min-width: 80px; /* Ensure a minimum width for readability */
+    width: auto; /* Override default input-group width */
+}
+
+.age-note {
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 5px;
+    text-align: left;
+    width: 100%; /* Ensure it takes full width below inputs */
+    flex: 1 0 100%; /* For flex container wrapping */
+}
+
+/* Specific styling for the temperature input + select (now the second .input-group) */
+.input-group:nth-of-type(2) input[type="number"] {
+    flex: 2; /* Temperature input takes more space */
+    width: auto; /* Override calc(50%-5px) */
+}
+
+.input-group:nth-of-type(2) select {
+    flex: 1; /* Temperature select takes less space */
+    width: auto; /* Override calc(50%-5px) */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2C118.8L146.2%2C260.6L5.4%2C118.8c-3.1-3.1-3.1-8.2%2C0-11.3s8.2-3.1%2C11.3%2C0L146.2%2C238l129.5-129.5c3.1-3.1%2C8.2-3.1%2C11.3%2C0S290.1%2C115.7%2C287%2C118.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow for select */
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 12px;
+    padding-right: 40px; /* Make space for the arrow */
+}
+
+/* Adjusting for when temperature input and select are on different lines */
+@media (max-width: 480px) {
+    .age-input-fields input[type="number"], /* New rule for age inputs */
+    .input-group:nth-of-type(2) input[type="number"], /* Temperature input */
+    .input-group:nth-of-type(2) select { /* Temperature select */
+        width: 100%; /* Full width on very small screens */
+        flex: none;
+    }
+}
+
+button {
+    background-color: #27ae60; /* Vibrant green button */
+    color: white;
+    padding: 14px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 300px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+button:hover {
+    background-color: #229954; /* Slightly darker green on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.results-area {
+    margin-top: 40px;
+    padding: 25px;
+    background-color: #f8fcf9; /* Very light green background for results */
+    border-radius: 10px;
+    border: 1px solid #e0ffe0; /* Light green border */
+    text-align: left;
+    display: none; /* Initially hide results until calculated */
+    opacity: 0; /* For a fade-in effect later with JS */
+    transition: opacity 0.5s ease;
+}
+
+.results-area p#statusMessage {
+    font-size: 1.15em;
+    color: #28a745; /* Success green */
+    font-weight: 600;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.results-area ul#recommendations {
+    list-style: none; /* Remove bullet points */
+    padding-left: 0;
+    margin-top: 15px;
+}
+
+.results-area ul#recommendations li {
+    margin-bottom: 8px;
+    color: #444;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.results-area ul#recommendations li:before {
+    content: "• "; /* Custom bullet point */
+    color: #27ae60;
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
+
+/* Styles for specific warnings/alerts (will be added by JS) */
+.warning {
+    color: #e67e22; /* Orange for warnings */
+    font-weight: bold;
+}
+
+.critical {
+    color: #c0392b; /* Red for critical alerts */
+    font-weight: bold;
+}
+
+    #pre-load {
+    position: fixed;
+    min-width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white; /*#E3D2BB;*/ or /* Or use #E3F2FD */
+}
+
+#pre-load {
+    position: fixed; /* Important: Makes it stay on top */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: /*rgba(0, 0, 0, 0.7); /* Semi-transparent background */ /*#00B1FF;*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top of other elements */
+}
+
+#pre-load img {
+    max-width: ; /* Adjust as needed */
+    max-height: ; /* Adjust as needed */
+}
