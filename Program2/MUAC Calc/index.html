@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height">
+    <title>Malnutrition Z-Score Calculator</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
+</head>
+<body>
+    
+    <div id="pre-load">
+        <img src="../check.gif" alt="Loading...">
+    </div>
+    
+    <div class="container">
+        <h1>Malnutrition Z-Score Calculator</h1>
+        <p class="disclaimer">
+            <strong>Disclaimer:</strong> This tool is for educational purposes only and is a simplified demonstration.
+            It is NOT a substitute for professional medical assessment or the official WHO growth standards.
+            Always consult a healthcare professional for accurate diagnosis and treatment.
+        </p>
+
+        <div class="input-section">
+            <div class="form-group">
+                <label for="muac">MUAC (Mid-Upper Arm Circumference) in cm:</label>
+                <input type="number" id="muac" placeholder="e.g., 12.0" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+                <label for="height">Height (or Length if < 2 years) in cm:</label>
+                <input type="number" id="height" placeholder="e.g., 85.0" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+                <label for="age">Age in Months (e.g., 36. MUAC cut-offs are for 6-59 months):</label>
+                <input type="number" id="age" placeholder="e.g., 36" min="1">
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender:</label>
+                <select id="gender">
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button id="calculateBtn">Calculate Z-Scores</button>
+                <button id="clearBtn">Clear</button>
+            </div>
+        </div>
+
+        <div class="result-section">
+            <h2>Results:</h2>
+            <p id="muacStatus" class="status-message"></p>
+            <p id="heightStatus" class="status-message"></p>
+            <p id="overallStatus" class="overall-status"></p>
+            <div id="additionalInfo" class="additional-info"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script> <!-- Link to your JavaScript file -->
+</body>
+</html>
