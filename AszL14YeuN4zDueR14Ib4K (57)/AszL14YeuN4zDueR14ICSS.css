@@ -1,0 +1,343 @@
+:root {
+    --grey: #f5f5f5;     /* Very light grey - careful with white text! */
+    --blue: #3d88f9;
+    /*--black: #1a1a1a;*/
+}
+
+/* Add this for robust full-screen behavior */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden; /* Important: Prevents horizontal scrollbars on mobile */
+    overscroll-behavior-y: contain; /* Optional: Helps prevent pull-to-refresh on scroll */
+}
+
+.chat-window {
+    * {
+        font-family: "Raleway", sans-serif;
+    }
+    display: none; /* Changed from display: flex; /*none;*/ to display: none; */
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    /*background-color: white;*/
+    border-radius: 0;
+    position: fixed;
+    z-index: 999;
+
+    /* Base Sizing (Mobile-first: full screen by default) */
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh; /* ✅ FIX for mobile rotation */
+    /* REMOVED: max-width: 450px; and max-height: 750px; from here.
+       These constraints will now be applied only in media queries for larger screens. */
+    overflow: hidden;
+
+    flex-direction: column;
+    justify-content: space-between;
+
+    /* Center the chat window (though for 100vw/100vh it just aligns to top-left implicitly) */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    .close { /* This is your "delete button" in the context of the CSS you provided */
+        user-select: none;
+        position: relative;
+        border: none;
+        padding: 10px 0;
+        background-color: #1a1a1a;
+        color: orange; /*var(--blue);*/
+        border-radius: 3px 3px 0 0;
+        font-size: 20px;
+        font-weight: bold;
+        /* NO body.dark-theme override is needed here, it stays consistent already */
+    }
+
+    .chat {
+    flex: 1;
+    padding: 0 8px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+
+    p {
+        border-radius: 20px;
+        max-width: 84%;
+        margin: 8px 0;
+        font-size: 0.95rem;
+        padding: 10px;
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 15px;
+    }
+
+    div.model {
+        display: flex;
+        p {
+            background-color: var(--grey); /* Bot message background - will be light grey */
+            color: #333; /* <-- FIXED: Now the bot message text will be a clear dark grey */
+            hyphens: auto;
+            overflow-wrap: break-word;
+            border-radius: 10px 10px 10px 0;
+            padding: 8px 12px;
+        }
+
+        /* NEW RULE: Style links inside bot messages */
+        p a {
+            color: var(--blue, #3d88f9); /* Make sure links are blue */
+            text-decoration: underline; /* Add underline for clear indication */
+        }
+        p a:hover,
+        p a:focus {
+            color: #0056b3; /* Slightly darker blue on hover/focus */
+        }
+    }
+
+    div.user {
+        display: flex;
+        justify-content: flex-end;
+
+        p {
+            background-color: orange; /*var(--blue);*/ /* User message background - will be blue */
+            color: white; /* User message text */
+            max-width: 85%;
+            hyphens: auto;
+            overflow-wrap: break-word;
+            border-radius: 10px 10px 0 10px;
+            font-size: 0.95rem;
+        }
+    }
+
+        div.error {
+            p {
+                display: flex;
+                font-size: 14px;
+                text-align: center;
+                color: #721c24;
+                background: #f8d7da;
+            }
+        }
+    }
+
+    .input-area {
+        user-select: none;
+        gap: 5px;
+        height: 70px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0 8px;
+        border-top: 1px solid lightgray;
+
+        input {
+            user-select: none;
+            flex-grow: 1;
+            height: 40px;
+            flex: 1;
+            border: none;
+            background-color: var(--grey); /* Input background - I'm assuming you want this to change with the theme, based on screenshot */
+            border-radius: 20px;
+            padding-left: 20px;
+            font-size: 16px;
+        }
+
+        button { /* This is the send button */
+            user-select: none;
+            height: 40px;
+            width: 40px;
+            border-radius: 100%;
+            border: none;
+            margin-left: 12px;
+            background-color: orange; /*var(--blue);*/ /* Send button color - will remain blue */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+
+            img {
+                user-select: none;
+                width: 18px;
+            }
+
+            &:hover {
+                box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+            }
+            /* NO body.dark-theme override is needed here, it stays consistent already */
+        }
+    }
+}
+
+/* ... (rest of your existing CSS, including media queries, loader, pre-load11) ... */
+
+/* --- Media Queries for Larger Screens --- */
+
+/* Medium screens (e.g., Tablets in landscape, small laptops) */
+@media (min-width: 768px) {
+    .chat-window {
+        /* On larger screens, we want a contained, rounded window */
+        width: 80vw;
+        height: 85vh;
+        max-width: 600px; /* Re-introduce max-width for larger screens */
+        max-height: 850px; /* Re-introduce max-height for larger screens */
+        border-radius: 20px; /* Re-introduce border-radius for larger screens */
+    }
+}
+
+/* Large screens (e.g., Laptops, Desktops) */
+@media (min-width: 1200px) {
+    .chat-window {
+        width: 60vw;
+        height: 80vh;
+        max-width: 700px;
+        max-height: 900px;
+    }
+}
+
+.loader {
+    width: 40px;
+    opacity: 0.4;
+    aspect-ratio: 4;
+    background: radial-gradient(circle closest-side, #000 90%, #0000) 0/calc(100% / 3) 100% space;
+    clip-path: inset(0 100% 0 0);
+    animation: l1 1.5s steps(4) infinite;
+}
+
+@keyframes l1 {
+    to {
+        clip-path: inset(0 -34% 0 0)
+    }
+}
+
+#pre-load1 {
+    position: fixed; /* Keeps it in place relative to the viewport */
+    top: 0;          /* Aligns it to the very top of the viewport */
+    left: 0;         /* Aligns it to the very left of the viewport */
+    width: 100%;     /* Makes it span 100% of the viewport's width */
+    height: 100%;    /* Makes it span 100% of the viewport's height */
+    display: flex;   /* Uses flexbox for easy centering of its content */
+    justify-content: center; /* Centers content horizontally */
+    align-items: center;     /* Centers content vertically */
+    background-color: white; /* #E3D2BB; /* Your chosen background color. You could also use rgba for transparency, e.g., rgba(0, 0, 0, 0.7); */
+    z-index: 1000;   /* Ensures it sits on top of almost all other content */
+}
+
+#pre-load1 img {
+    max-width: 130vw;  /* Allows the image to take up to 80% of the viewport width */
+    max-height: 100vh; /* Allows the image to take up to 80% of the viewport height */
+    width: auto;      /* Ensures the width adjusts proportionally to maintain aspect ratio */
+    height: auto;     /* Ensures the height adjusts proportionally to maintain aspect ratio */
+    object-fit: contain; /* Ensures the entire image is visible within its given dimensions, scaling down if necessary without cropping. */
+    display: block;   /* Important for proper centering and sizing behavior */
+}
+
+
+/* General theme transitions */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light theme defaults (can be your current defaults or explicit) */
+body.light-theme {
+    background-color: rgba(0, 0, 0, 0.7); /* A soft light background */
+    color: #333; /* Dark text */
+}
+
+/* Dark theme styles */
+body.dark-theme {
+    background-color: rgba(0, 0, 0, 0.7); /* A deep dark background */
+    color: #f0f2f5; /* Light text */
+}
+
+/* Style for the theme toggle container */
+.theme-toggle-container {
+    user-select: none;
+    color: red;
+    cursor: pointer;
+    position: fixed;
+    top: 12px;
+    right: 1px;
+    z-index: 1000;
+}
+
+/* Styling for the single theme toggle button */
+#them-toggle-btn {
+    user-select: none;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #fff;
+    color: #333;
+    font-size: 15px;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#them-toggle-btn:hover {
+    opacity: 0.9;
+}
+
+/* Adjust button appearance when the page is in dark theme */
+body.dark-theme #theme-toggle-btn {
+    background-color: #333;
+    color: #f0f2f5;
+    border-color: #555;
+}
+
+.chat-window {
+    background-color: var(--chat-bg-color, #fff);
+    color: var(--chat-text-color, #333);
+}
+
+/* Define CSS variables for themes */
+body.light-theme {
+    --chat-bg-color: #fff;
+    --chat-text-color: #333;
+    /* Add more variables for other components */
+}
+
+body.dark-theme {
+    --chat-bg-color: #2c2c2c;
+    --chat-text-color: #f0f2f5;
+    /* Add more variables for other components */
+}
+
+
+/* >>> IMPORTANT: DELETE OR COMMENT OUT THESE BLOCKS <<< */
+/* These were causing your bubble colors and input field to change in dark mode,
+   which is what you want to prevent for the bubbles and send/delete buttons.
+   If you want the INPUT FIELD to also NOT change its background, you'd delete its block too.
+   In your screenshot, the input field *is* dark, so I'm leaving that rule to be removed if desired.
+*/
+
+/* 1. REMOVE THIS BLOCK to keep bot and user bubbles consistent */
+
+body.dark-theme .chat .model p, body.dark-theme {
+    background-color: #444; /* This was changing bot bubbles to dark grey!*/
+    color: #eee;
+}
+
+body.dark-theme .chat {
+    background-color: #000000; /* This was changing bot bubbles to dark grey!*/
+    color: #eee;
+}
+
+
+
+/* 2. REMOVE THIS BLOCK if you want the INPUT FIELD background to also remain LIGHT (var(--grey)) in dark theme */
+
+body.dark-theme .input-area input {
+    background-color: #333; /* This was changing the input background to dark grey*/
+    color: #f0f2f5;
+    border-color: #555;
+}
+
+body.dark-theme .loader {
+    background-color: black; /* This was changing the input background to dark grey*/
+    color: black;
+    
+    background: white;
+}
