@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1, minimum-scale=1, width=device-width, height=height">
+    <title>Login / Signup | Alyndrik Chatbot</title>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', Arial, sans-serif; }
+        body {
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a2540, #0f3d63, #145da0);
+            color: #fff;
+            overflow: hidden; /* Hide scrollbar when loader is active */
+        }
+        .container {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(15px);
+            padding: 50px 35px;
+            border-radius: 25px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.45);
+            animation: fadeIn 1s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h2 {
+            margin-bottom: 25px;
+            color: #00e5ff;
+            font-size: 2rem;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 12px;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+        }
+        input::placeholder { color: #cfdbea; }
+        button {
+            padding: 15px 25px;
+            margin: 10px 5px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+        .signup-btn {
+            background: linear-gradient(90deg, #00f5a0, #00bfff);
+            color: #fff;
+        }
+        .login-btn {
+            background: rgba(255,255,255,0.15);
+            color: #00e5ff;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            opacity: 0.95;
+        }
+        #msg {
+            margin-top: 15px;
+            min-height: 22px;
+            color: #ffce00;
+            font-size: 0.95rem;
+        }
+
+        /* Loader Styles */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            visibility: hidden; /* Hidden by default */
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s linear;
+        }
+        .loader-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #00e5ff; /* Loader color */
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Alyndrik Login</h2>
+        <input id="email" type="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Password">
+        <div>
+            <button class="signup-btn" id="signupBtn">Sign Up</button>
+            <button class="login-btn" id="loginBtn">Login</button>
+        </div>
+        <p id="msg"></p>
+    </div>
+
+    <!-- Loader HTML -->
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <script>
+        /* ================================
+           SUPABASE INIT (ONCE)
+        ================================= */
+        if (!window.supabaseClient) {
+            window.supabaseClient = supabase.createClient(
+                "https://xqrkmffptmbtntmnwgyl.supabase.co",
+                "sb_publishable_DLi9Y0YMsGM6st4Qkc5_Hw_DPJungiv"
+            );
+        }
+        const supa = window.supabaseClient;
+
+        // Get loader element
+        const loaderOverlay = document.getElementById("loaderOverlay");
+
+        // Function to show loader
+        function showLoader() {
+            loaderOverlay.classList.add("show");
+            document.body.style.overflow = "hidden"; // Prevent scrolling
+        }
+
+        // Function to hide loader
+        function hideLoader() {
+            loaderOverlay.classList.remove("show");
+            document.body.style.overflow = ""; // Restore scrolling
+        }
+
+        /* ================================
+           AUTO-SKIP LOGIN IF SESSION EXISTS
+        ================================= */
+        (async () => {
+            showLoader(); // Show loader immediately on page load
+            const { data } = await supa.auth.getSession();
+            if (data.session) {
+                // User already logged in before
+                window.location.replace("./Alyndrik.html");
+            } else {
+                hideLoader(); // Hide loader if no session, so login form becomes visible
+            }
+        })();
+
+        /* ================================
+           SIGN UP
+        ================================= */
+        document.getElementById("signupBtn").onclick = async () => {
+            if (!navigator.onLine) return alert("You must be online to sign up");
+
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            if (!email || !password) {
+                document.getElementById("msg").innerText = "Enter email & password";
+                return;
+            }
+
+            // showLoader(); // You might want a loader here too, or just wait for the response
+            const { error } = await supa.auth.signUp({ email, password });
+            // hideLoader(); // Hide loader after signup attempt
+
+            document.getElementById("msg").innerText =
+                error ? error.message : "Signup successful. You may now login.";
+        };
+
+        /* ================================
+           LOGIN
+        ================================= */
+        document.getElementById("loginBtn").onclick = async () => {
+            if (!navigator.onLine) return alert("You must be online to login");
+
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            if (!email || !password) {
+                document.getElementById("msg").innerText = "Enter email & password";
+                return;
+            }
+
+            showLoader(); // Show loader when attempting to log in
+            const { error } = await supa.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                document.getElementById("msg").innerText = error.message;
+                hideLoader(); // Hide loader if login fails
+            } else {
+                // Login success → Supabase stores session automatically
+                // Loader stays visible as we are redirecting
+                window.location.replace("./Alyndrik.html");
+            }
+        };
+    </script>
+<script src="notice.js"></script>
+</body>
+</html>

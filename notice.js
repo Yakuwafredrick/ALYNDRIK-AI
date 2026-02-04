@@ -1,0 +1,2 @@
+alert("New functionality 1: 🧐Ask Alyndrik Lite to Analyse for you Images. Still works 100% Offline");
+alert("New functionality 2: 💬💭Have Real-time Chat with your fellow Users who are using Alyndrik Lite. All with just a command");

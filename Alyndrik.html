@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height">
+    <title>AI Chat Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="AszL14YeuN4zDueR14Ib4K (57)/AszL14YeuN4zDueR14ICSS.css" />
+  <link rel="stylesheet" href="style2.css" />
+    <link rel="stylesheet" href="nav.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
+ <meta name="theme-color" content="#1a73e8" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  
+  <script type="module" src="./firebase-init.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('✅ SW registered:', reg.scope))
+        .catch(err => console.error('❌ SW registration failed:', err));
+    }
+  </script>
+         
+<script src="./libs/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = './libs/pdf.worker.min.js';
+  </script>
+</head>
+<body>
+    
+<div id="pre-load1">
+    <img src="AszL14YeuN4zDueR14Ib4K (9)/logo.gif" alt="Loading...">
+</div>
+
+    <div id="preloader-overlay">
+        <div class="preloader-content">
+            <div class="chatbot-icon">
+            <!-- THIS IS THE ONE! -->
+            <img src="app-icon.gif" alt="send" class="preloader-icon" />
+        </div> <!-- Optional: Add a chatbot icon -->
+            <div class="preloader-spinner">
+                <div class="dot dot-1"></div>
+                <div class="dot dot-2"></div>
+                <div class="dot dot-3"></div>
+            </div>
+            <p id="preloader-text" class="fade-in-out">Initializing Alyndrik...</p>
+        </div>
+        <p class="disclaimer-text">
+      <strong>⚠️ Note:</strong> Alyndrik's performance and availability rely on external underlying systems. Therefore, a <strong>Stable Network & Internet connection</strong> is required for full functionality and <strong>to avoid occasional delays or temporary service disruptions</strong>. <strong>⚠️</strong> Please <strong>interact with Alyndrik Chatbot Responsibly since it operates with usage limits. Excessive usage within a short period might make it temporarily go Offline until the System's Quota resets after a 12-hour period,</strong> depending on your previous interaction. ⚠️Ensure <strong>Airtel 4G SIM card is selected for mobile data.</strong> We appreciate your understanding.--------- <i>@YakuwaTechnologies.</i> <strong>Alyndrik 2.0.3</strong>
+        </p>
+        
+    </div>
+    
+<!-- ☰ Navigation Toggle Button -->
+<button id="nav-toggle" class="nav-toggle">☰</button>
+
+<!-- Left Slide Navigation -->
+<div id="side-nav" class="side-nav">
+  <div class="side-nav-header">
+    <span>Alyndrik Menu</span>
+    <button id="nav-close">✕</button>
+  </div>
+
+  <ul class="side-nav-links">
+      
+<li class="clinic-item2">
+  🛠 Open Tools
+  <ul class="clinic-dropdown">
+    <li id="open-images">🖼️ Analyse Images</li>
+    <li id="open-chat">💬 Real-time Chat</li>
+  </ul>
+</li>
+
+
+
+<li class="clinic-item">
+  🏥 Go to Clinic
+  <ul class="clinic-dropdown">
+    <li id="open-muac">🩺 check MUAC</li>
+    <li id="open-bmi">⚖️ check BMI</li>
+  </ul>
+</li>
+    
+    <li id="send-feedback">📬 Send Feedback</li>
+  </ul>
+</div>
+
+<!-- Overlay -->
+<div id="nav-overlay"></div>
+    <!-- Theme Toggle Button START ✨ -->
+    <div class="theme-toggle-container">
+        <span id="theme-toggle-btn">🌙 Dark Mode</span> <!-- Initial text can be anything, JS will update it -->
+    </div>
+    <!-- Theme Toggle Button END -->
+
+    
+        <div class="chat-window" <!-- Initially hidden -->
+        <button class="close">Alyndrik</button>  <!-- Simpler close button -->
+        <div class="chat">
+            <div class="model">
+                <p>Hello! How can I help you?</p>
+            </div>
+        </div>
+<div class="input-area">
+    <input placeholder="Ask me anything..." type="text" />
+    <button>
+        <img src="send-icon.png" alt="send" />
+    </button>
+    <div class="action-buttons">
+        <span id="delete-chat-button">🗑</span>
+    </div>
+</div>
+    </div>
+
+    <div class="chat-button"></div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "@google/generative-ai": "https://esm.run/@google/generative-ai"
+            }
+        }
+    </script>
+    
+
+    
+    <script type="module" src="img.js"></script>
+    <script type="module" src="AszL14YeuN4zDueR14Ib4K.js"></script>
+    <script type="module" src="script2.js"></script>
+    
+    <!-- Moved js to js folder -->
+    
+    <script type="module" src="AszL14YeuN4zDueR14Ib4KInfo.js"></script>
+    
+    <script type="module" src="pdfInfo.js"></script>
+    <script type="module" src="theme.js"></script>
+    
+    <script type="module" src="time-tracker.js"></script>
+    <script type="module" src="model-manager.js"></script>
+    <script type="module" src="system-state.js"></script>
+    <script type="module" src="voice-announcer.js"></script>
+    <script type="module" src="network.js"></script>
+    <script type="module" src="voice-manager.js"></script>
+     <script type="module" src="nav.js"></script>
+
+
+        </body>
+</html>

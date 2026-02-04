@@ -1,0 +1,35 @@
+🎉Have Issues with Installing Alyndrik?
+Alyndrik chatbot is designed for Android versions 10 and above.
+
+
+How to Fix Installation Problems:
+
+1.  Storage Space: The Alyndrik.apk file is 135 MB. Please ensure your device has sufficient free storage capacity before attempting installation.
+
+2.  Android Version: Verify that your Android device is running version 10 or higher, as Alyndrik is only compatible with these versions.
+
+
+Alyndrik chatbot Not Working?
+
+1.  Initial Internet Connection: While Alyndrik functions both online and offline, it initially requires an active internet connection for at least 10 minutes to set up.
+
+
+2.  Cached Data: Do not clear Alyndrik's cached data. If cleared, you will need to reconnect to the internet to download necessary files again.
+
+
+3.  Usage Limits: Alyndrik Chatbot operates with usage limits. Excessive use within a short timeframe may temporarily take it offline until the system's quota resets after a 12-hour period. Therefore, please use it efficiently.
+
+4. Software Update: Make sure your Android device is updated to the latest software version.
+
+
+5. Connectivity: If your data connection drops to 0 MBs, toggle Flight mode (ON & OFF), then Restart the app.
+
+
+6. SIM Cards to Use: Verify that your Airtel 4G SIM card is selected for mobile data.
+
+
+6. Ensure you have a Stable Network Connection.
+
+
+All Instructions on how to use Alyndrik
+

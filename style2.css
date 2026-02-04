@@ -1,0 +1,167 @@
+/*I think the CSS code for this second preloader is colliding with the chatinfo.js code & affecting the display of the images displayed in the chat section.*/
+
+/*Below is the CSS code*/
+
+body {
+    user-select: non;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    overflow: hidden; /* Prevent scrolling while preloader is active */
+
+    /* ✨ NEW STYLES FOR ATTRACTIVE THEMED BACKGROUND (THIS REMAINS THE SAME FOR MAIN CONTENT) ✨ */
+    background-color: #eaf6fa; /* A very light, inviting blue-grey */
+    background-image: linear-gradient(135deg, rgba(234, 246, 250, 0.8) 0%, rgba(220, 240, 245, 0.8) 100%),
+                      url('path/to/your/academic_chat_pattern.svg'); /* Make sure this path is correct! */
+    background-repeat: repeat;
+    background-size: cover, 250px;
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+
+
+/* Preloader Overlay */
+#preloader-overlay {
+    user-select: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* REMOVED: The old opaque background */
+    /* background: linear-gradient(135deg, #1a1a1a, #333333); */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+
+    /* ✨ NEW STYLES TO SHOW DESIGN ON PRELOADER ✨ */
+    /* 1. Base color (as fallback) */
+    background-color: #eaf6fa;
+
+    /* 2. Layer 1 (TOP): A semi-transparent dark gradient to keep the preloader focused and text readable. */
+    /*    This lets the pattern and light gradient from below shine through subtly! */
+    background-image: linear-gradient(135deg, rgba(26, 26, 26, 0.88) 0%, rgba(51, 51, 51, 0.88) 100%), /* Dark overlay with ~88% opacity */
+                      /* 3. Layer 2 (MIDDLE): The light gradient from your body background. */
+                      linear-gradient(135deg, rgba(234, 246, 250, 0.8) 0%, rgba(220, 240, 245, 0.8) 100%),
+                      /* 4. Layer 3 (BOTTOM): Your thematic pattern/illustration! */
+                      url('path/to/your/academic_chat_pattern.svg');
+
+    /* Important: Specify repeat, size, and position for *each* background image layer */
+    background-repeat: repeat, repeat, repeat;
+    background-size: cover, cover, 250px; /* 'cover' for gradients, '250px' for pattern */
+    background-position: center center, center center, center center;
+    background-attachment: fixed, fixed, fixed;
+}
+
+.preloader-icon{
+                user-select: none;
+                width: 100px;
+                border-radius: 50%;
+            }
+            
+.disclaimer-text {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  color: #FB7459;
+  
+  user-select: none;
+    cursor: pointer;
+    position: fixed;
+    top: 5px;
+    z-index: 1000;
+}
+
+
+#preloader-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+.preloader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Space between elements */
+}
+
+.chatbot-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+    animation: bounceIcon 1s infinite alternate ease-in-out;
+}
+
+@keyframes bounceIcon {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+
+/* Preloader Spinner (Bouncing Dots) */
+.preloader-spinner {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 25px;
+}
+
+.dot {
+    width: 15px;
+    height: 15px;
+    background-color: var(--blue, #007bff); /* Use CSS variable or fallback */
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+}
+
+.dot-1 { animation-delay: -0.32s; } /* Stagger the animation */
+.dot-2 { animation-delay: -0.16s; }
+.dot-3 { animation-delay: 0s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); background-color: var(--blue, #007bff); }
+    40% { transform: scale(1.0); background-color: #f0f0f0; } /* Change color at peak */
+}
+
+/* Preloader Text */
+#preloader-text {
+    font-size: 24px;
+    font-weight: 500;
+    color: #e0e0e0; /* Lighter color for text */
+    text-align: center;
+    min-width: 250px; /* Prevent text shifting too much */
+    min-height: 30px; /* Maintain height during fades */
+    line-height: 1.2;
+    padding: 5px 10px;
+}
+
+/* Text Fade Animation */
+.fade-in-out {
+    animation: fadeInOutText 2.5s infinite; /* JS will control this */
+}
+
+@keyframes fadeInOutText {
+    0%, 100% { opacity: 0; transform: translateY(10px); }
+    25%, 75% { opacity: 1; transform: translateY(0); }
+}
+
+/* Main Content (Initially hidden) */
+#main-content {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+    padding-top: 50px; /* Example spacing */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#main-content.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
