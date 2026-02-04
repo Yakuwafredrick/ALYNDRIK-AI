@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height">
+    <title>Medical Alarm Clock</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div id="pre-load">
+        <img src="alarm.gif" alt="Loading...">
+    </div>
+    
+    <div class="container">
+        <h1>Alarm</h1>
+        <div class="clock-display" id="clockDisplay"></div>
+
+        <!-- Notification Permission Button (from previous update, if you kept it) -->
+        <!-- <button id="requestNotificationPermission" style="margin-bottom: 20px; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Enable Background Notifications</button> -->
+
+        <div class="alarm-setter">
+            <h2>Set New Alarm</h2>
+            <input type="time" id="alarmTimeInput">
+            <input type="text" id="alarmMessageInput" placeholder="Reason for the Alarm t...">
+            <button id="setAlarmButton">Set Alarm</button>
+        </div>
+
+        <div class="alarms-list">
+            <h2>Active Alarms</h2>
+            <ul id="activeAlarmsList">
+                <!-- Alarms will be listed here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+
+    <audio id="alarmSound" src="Over_the_horizon.mp3" preload="auto" loop></audio>
+    <!-- Added 'loop' attribute so it plays continuously until dismissed/snoozed -->
+
+    <!-- NEW: Alarm Dialog HTML -->
+    <div id="alarmDialog" class="alarm-dialog">
+        <div class="alarm-content">
+            <h2 id="alarmDialogMessage">Time for your medication!</h2>
+            <div class="alarm-actions">
+                <button id="snoozeButton" class="snooze-btn">Snooze (5 min)</button>
+                <button id="dismissButton" class="dismiss-btn">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <!-- Uncomment this if you are using service workers -->
+    <!-- <script src="service-worker.js"></script> -->
+</body>
+</html>

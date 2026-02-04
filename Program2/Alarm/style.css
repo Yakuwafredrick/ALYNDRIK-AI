@@ -1,0 +1,242 @@
+body {
+    user-select: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+    color: #fff;
+    margin: 0;
+    overflow: hidden; /* Prevent body scroll when dialog is open */
+}
+
+.container {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    position: relative; /* For z-index if needed */
+    z-index: 1; /* Ensure it's below the dialog */
+}
+
+h1 {
+    color: #00bcd4;
+    margin-bottom: 25px;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+h2 {
+    color: #a7d9ff;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.6em;
+}
+
+.clock-display {
+    font-size: 3.5em;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #fff;
+    letter-spacing: 2px;
+    padding: 10px;
+    border: 2px solid #00bcd4;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.alarm-setter input[type="time"],
+.alarm-setter input[type="text"] {
+    width: calc(100% - 22px); /* Account for padding and border */
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #00bcd4;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1.1em;
+}
+
+.alarm-setter input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* Makes the calendar icon white */
+}
+
+.alarm-setter input::placeholder {
+    color: #ccc;
+}
+
+.alarm-setter button {
+    background-color: #00bcd4;
+    color: #fff;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.alarm-setter button:hover {
+    background-color: #0097a7;
+}
+
+.alarms-list ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.alarms-list li {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 5px solid #00bcd4;
+}
+
+.alarms-list li span {
+    font-size: 1.1em;
+}
+
+.alarms-list li button {
+    background-color: #dc3545; /* Red for delete */
+    color: #fff;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.alarms-list li button:hover {
+    background-color: #c82333;
+}
+
+/* NEW: Alarm Dialog Styles */
+.alarm-dialog {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place even when scrolling */
+    z-index: 10; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+    display: flex; /* Use flexbox for centering */
+    justify-content: center;
+    align-items: center;
+    pointer-events: none; /* Allow clicks through when hidden */
+    opacity: 0; /* Fade in/out */
+    transition: opacity 0.3s ease;
+}
+
+.alarm-dialog.show {
+    pointer-events: auto; /* Enable clicks when shown */
+    opacity: 1;
+}
+
+.alarm-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    color: #333;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    animation: bounceIn 0.5s ease-out; /* Simple entry animation */
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.alarm-content h2 {
+    color: #e63946; /* Red for alarm message */
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    animation: pulse 1.5s infinite; /* Pulsing effect for urgency */
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+
+.alarm-actions {
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+}
+
+.snooze-btn, .dismiss-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    flex-grow: 1; /* Allow buttons to grow */
+}
+
+.snooze-btn {
+    background-color: #ffc107; /* Yellowish for snooze */
+    color: #333;
+}
+
+.snooze-btn:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+}
+
+.dismiss-btn {
+    background-color: #28a745; /* Green for dismiss */
+    color: white;
+}
+
+.dismiss-btn:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+    #pre-load {
+    position: fixed;
+    min-width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white; /*#E3D2BB;*/ or /* Or use #E3F2FD */
+}
+
+#pre-load {
+    position: fixed; /* Important: Makes it stay on top */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: /*rgba(0, 0, 0, 0.7); /* Semi-transparent background */ /*#00B1FF;*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top of other elements */
+}
+
+#pre-load img {
+    max-width: ; /* Adjust as needed */
+    max-height: ; /* Adjust as needed */
+}
