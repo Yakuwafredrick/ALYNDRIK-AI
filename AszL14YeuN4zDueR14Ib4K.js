@@ -459,7 +459,7 @@ let genAIInstance = null;
 let cachedSystemInstruction = "";
 
 let modelReady = false;
-const API_KEY = "AIzaSyDVA6KQYEu_ELbGulQZYPkZOndwqiaWD-Q";
+const API_KEY = "AIzaSyCyj8L8QJImCJbQNJ6IiU3_1VXNug2LIFc";
 
 // ✅ Import Info Modules
 import {
