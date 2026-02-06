@@ -454,20 +454,13 @@ let messages = {
 };
 
 let model = null;
-
 let genAIInstance = null;
 let cachedSystemInstruction = "";
-
 let modelReady = false;
-const API_KEY = "AIzaSyCyj8L8QJImCJbQNJ6IiU3_1VXNug2LIFc";
 
 // ✅ Import Info Modules
-import {
-    getChatInfo
-} from './AszL14YeuN4zDueR14Ib4KInfo.js';
-import {
-    getBiologyPdfText
-} from './pdfInfo.js';
+import { getChatInfo } from './AszL14YeuN4zDueR14Ib4KInfo.js';
+import { getBiologyPdfText } from './pdfInfo.js';
 
 // ✅ Load SDK and Initialize Model
 async function loadSDK() {
@@ -492,8 +485,10 @@ async function loadSDK() {
         const sdkModuleURL = URL.createObjectURL(sdkBlob);
         const module = await import(sdkModuleURL);
 
-        genAIInstance = new module.GoogleGenerativeAI(API_KEY);
+        // ✅ Initialize SDK instance WITHOUT API key
+        genAIInstance = new module.GoogleGenerativeAI(); // no key required in frontend
 
+        // ✅ Prepare cached system instruction
         let biologyText = "⚠️ Biology notes loading failed.";
         try {
             biologyText = await getBiologyPdfText();
@@ -501,18 +496,10 @@ async function loadSDK() {
             console.warn("⚠️ Using placeholder for biology notes.");
         }
 
-            cachedSystemInstruction = `${getChatInfo()}\n\n📘 About Alyndrik & YakuwaTechnologies:\n${biologyText}`;
-            
-            // Choose the default model explicitly
-const initialModel = GEMINI_MODELS.FLASH; // or FLASH_LITE if you prefer
+        cachedSystemInstruction = `${getChatInfo()}\n\n📘 About Alyndrik & YakuwaTechnologies:\n${biologyText}`;
 
-model = genAIInstance.getGenerativeModel({
-    model: initialModel,
-    systemInstruction: cachedSystemInstruction,
-});
-            
-            modelReady = true;
-        console.log("✅ SDK loaded and model ready.");
+        modelReady = true;
+        console.log("✅ SDK loaded. Ready to send messages via gemini.js server function.");
     }
 }
 
