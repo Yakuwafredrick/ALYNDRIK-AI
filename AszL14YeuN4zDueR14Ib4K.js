@@ -677,25 +677,8 @@ async function autoRespondOnReload() {
 }
 
 // ✅ Main Send Message Function (Modified for usage tracker)
+// ✅ Main Send Message Function (Gemini backend, streaming + non-streaming)
 async function sendMessage() {
-    try {
-        // Check for updates first
-        if (navigator.onLine) {
-            await checkForUpdates(false);
-        } else {
-            enforceUpdateOffline();
-        }
-    } catch (err) {
-        console.warn("⚠️ Update check failed:", err);
-    }
-
-    // Disable chat if version disallows
-    if (isChatDisabledByVersion) return;
-
-    // Stop if message attempt handler fails
-    if (!handleSendMessageAttempt()) return;
-
-    // Prevent double-processing
     if (isMessageProcessing) return;
     isMessageProcessing = true;
 
@@ -712,7 +695,7 @@ async function sendMessage() {
         return;
     }
 
-    // Clear input and add user message + loader
+    // Clear input, show user message + loader
     input.value = "";
     chatContainer.insertAdjacentHTML(
         "beforeend",
@@ -720,72 +703,87 @@ async function sendMessage() {
     );
     scrollToBottom();
 
-    const loader = document.querySelector(".loader");
+    const loader = chatContainer.querySelector(".loader");
 
     try {
-        if (navigator.onLine) {
-            // Push user message to history
-            messages.history.push({
-                role: "user",
-                parts: [{ text: userMessage }]
-            });
-
-            // Prepare model message container
-            chatContainer.insertAdjacentHTML(
-                "beforeend",
-                `<div class="model"><p></p></div>`
-            );
-            scrollToBottom();
-
-            // 🌐 Call Netlify Gemini function
-            const response = await fetch("/.netlify/functions/gemini", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: userMessage, history: messages.history })
-            });
-
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-            const data = await response.json();
-            const modelText = data?.reply || "😴 No response from AI.";
-
-            // Update model container with response
-            const replies = chatContainer.querySelectorAll(".model");
-            replies[replies.length - 1].querySelector("p").innerHTML =
-                formatChatResponse(modelText);
-            scrollToBottom();
-
-            // Push AI response to history
-            messages.history.push({
-                role: "model",
-                parts: [{ text: modelText }]
-            });
-
-            saveChatHistory();
-
-            // Optionally generate image/video if command detected
-            maybeGenerateImage(userMessage);
-            maybeGenerateVideo(userMessage);
-
-        } else {
-            // Offline fallback
+        if (!navigator.onLine) {
             chatContainer.insertAdjacentHTML(
                 "beforeend",
                 `<div class="offmodel"><p>⚠️ You're offline. Check your connection.</p></div>`
             );
             scrollToBottom();
+            return;
         }
+
+        // Save user message to history
+        messages.history.push({
+            role: "user",
+            parts: [{ text: userMessage }]
+        });
+
+        // Prepare AI reply container
+        chatContainer.insertAdjacentHTML(
+            "beforeend",
+            `<div class="model"><p></p></div>`
+        );
+        scrollToBottom();
+
+        const modelContainer = chatContainer.querySelectorAll(".model");
+        const replyElement = modelContainer[modelContainer.length - 1].querySelector("p");
+
+        // ======= Call Gemini backend =========
+        const response = await fetch("/.netlify/functions/gemini", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                prompt: userMessage,
+                history: messages.history,
+                stream: true // enable streaming if supported by backend
+            })
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        // Stream response if available
+        if (response.body && response.body.getReader) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let modelText = "";
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                modelText += decoder.decode(value, { stream: true });
+                replyElement.innerHTML = formatChatResponse(modelText);
+                scrollToBottom();
+            }
+
+            messages.history.push({
+                role: "model",
+                parts: [{ text: modelText }]
+            });
+            saveChatHistory();
+
+        } else {
+            // Non-streaming fallback
+            const data = await response.json();
+            const modelText = data?.reply || "😴 No response from AI.";
+            replyElement.innerHTML = formatChatResponse(modelText);
+
+            messages.history.push({
+                role: "model",
+                parts: [{ text: modelText }]
+            });
+            saveChatHistory();
+        }
+
+        // Optional: trigger image/video generation
+        maybeGenerateImage(userMessage);
+        maybeGenerateVideo(userMessage);
 
     } catch (err) {
         console.error("Alyndrik Chat Error:", err);
 
-        // Auto-switch model on rate limit
-        if (err?.status === 429) {
-            await handleModelAutoSwitch(true);
-            speakNatural("Usage limit reached. Switching to Lite AI model.");
-        }
-
-        // Random fallback messages
         const fallback = [
             "😴 Oops! Problem processing your message.",
             "👩‍💻 Slight issue with the chat. Please retry.",
@@ -803,15 +801,18 @@ async function sendMessage() {
         );
         scrollToBottom();
     } finally {
-        // Clean up loader and allow next message
-        isMessageProcessing = false;
         if (loader) loader.remove();
+        isMessageProcessing = false;
         scrollToBottom();
     }
 }
-// ✅ Event Listeners
+
+// ✅ Event Listener
 const sendBtn = document.querySelector(".chat-window .input-area button");
 if (sendBtn) sendBtn.addEventListener("click", sendMessage);
+// ✅ Event Listeners
+//const sendBtn = document.querySelector(".chat-window .input-area button");
+//if (sendBtn) sendBtn.addEventListener("click", sendMessage);
 
 const chatBtn = document.querySelector(".chat-button");
 if (chatBtn) chatBtn.addEventListener("click", () => {
