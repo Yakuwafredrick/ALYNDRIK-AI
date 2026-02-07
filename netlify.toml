@@ -1,5 +1,6 @@
 [build]
-publish = "AszL14YeuN4zDueR14Ib4K"
+command = ""                      # No build step
+publish = "AszL14YeuN4zDueR14Ib4K"  # Your folder must be in the repo
 
 [functions]
-directory = "netlify/functions"
+directory = "netlify/functions"   # Keep this if you have serverless functions
