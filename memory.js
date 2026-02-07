@@ -6,7 +6,8 @@ const AlyndrikMemory = {
   load() {
     try {
       return JSON.parse(localStorage.getItem(MEMORY_KEY)) || [];
-    } catch {
+    } catch (e) {
+      console.warn("⚠️ Failed to load memory:", e);
       return [];
     }
   },
@@ -16,9 +17,11 @@ const AlyndrikMemory = {
   },
 
   remember(text, type = "general") {
+    if (!text) return;
+
     const memories = this.load();
 
-    // avoid duplicates
+    // Avoid duplicates
     if (memories.some(m => m.text === text)) return;
 
     memories.push({
@@ -30,7 +33,7 @@ const AlyndrikMemory = {
     this.save(memories);
   },
 
-  all() {
+  getAll() {
     return this.load();
   },
 
@@ -39,6 +42,10 @@ const AlyndrikMemory = {
       .slice(-limit)
       .map(m => `• ${m.text}`)
       .join("\n");
+  },
+
+  clear() {
+    localStorage.removeItem(MEMORY_KEY);
   }
 };
 

@@ -1,42 +1,18 @@
 import { initVoice, speakNatural } from "./voice-manager.js";
 import { checkNetworkHealth, onNetworkChange } from "./network.js";
-import {
-    SystemState,
-    updateSystemState,
-    runHealthCheck
-} from "./system-state.js";
+import { SystemState, updateSystemState, runHealthCheck } from "./system-state.js";
+import { getActiveModel, setActiveModel, resolveModelByUsage, isModelSwitchRequired, getModelSwitchMessage } from "./model-manager.js";
+import { maybeGenerateImage, maybeGenerateVideo } from './img.js';
+import { handleSendMessageAttempt, isChatTemporarilyBlocked } from './time-tracker.js';
+import { getChatInfo } from './AszL14YeuN4zDueR14Ib4KInfo.js';
+import { getBiologyPdfText } from './pdfInfo.js';
 
-//import {
-    //speakNatural
-//} from "./voice-announcer.js";
-
-import {
-    
-    getActiveModel,
-    setActiveModel,
-    resolveModelByUsage,
-    isModelSwitchRequired,
-    getModelSwitchMessage
-} from "./model-manager.js";
-
-import {
-    maybeGenerateImage,
-    maybeGenerateVideo
-} from './img.js';
-// NEW: Import the usage tracker functions
-import {
-    handleSendMessageAttempt,
-    isChatTemporarilyBlocked
-} from './time-tracker.js';
-
-window.addEventListener("load", async () => {
-    await initVoice();
-});
+window.addEventListener("load", async () => await initVoice());
 
 let lastSpokenNetworkStatus = null;
 let networkStabilizeTimer = null;
-
 let lastAnnouncementTime = 0;
+
 function announceSystemMessageThrottled(messageObj, opts = {}) {
     const now = Date.now();
     if (now - lastAnnouncementTime < 1200) {
@@ -48,136 +24,110 @@ function announceSystemMessageThrottled(messageObj, opts = {}) {
 }
 
 const NETWORK_MESSAGES = {
-    offline: {
-        popup: "⚠️ You're Offline.",
-        voice: "Alert. Internet connection is unavailable. I am currently offline and cannot fetch new data."
-    },
-    poor: {
-        popup: "⚠️ Network is unstable.",
-        voice: "Alert. Network is unstable in this location. I am unable to fetch all the required data."
-    },
-    stable: {
-        popup: "✅ Network connection is stable.",
-        voice: "Network connection is stable. All services are operating normally. However, i might need to reconnect and reload my systems to ensure everything's running smoothly."
-    }
+    offline: { popup: "⚠️ You're Offline.", voice: "Alert. Internet connection is unavailable. I am currently offline and cannot fetch new data." },
+    poor: { popup: "⚠️ Network is unstable.", voice: "Alert. Network is unstable in this location. I am unable to fetch all the required data." },
+    stable: { popup: "✅ Network connection is stable.", voice: "Network connection is stable. All services are operating normally." }
 };
 
 onNetworkChange(state => {
     if (state.status === lastSpokenNetworkStatus) return;
-
     lastSpokenNetworkStatus = state.status;
-
     clearTimeout(networkStabilizeTimer);
-
     networkStabilizeTimer = setTimeout(() => {
-        const msg = NETWORK_MESSAGES[state.status] || {
-    popup: "⚠️ Network status unknown.",
-    voice: "Network status could not be determined. Please, check your internet connection and restart"
-};
-
-announceSystemMessageThrottled(
-    {
-        popup: msg.popup,
-        voice: msg.voice
-    },
-    { type: state.status === "stable" ? "success" : "warning" }
-);
-
-        handleModelAutoSwitch();
-    }, state.status === "stable" ? 2500 : 0); // wait before saying “online”
+        const msg = NETWORK_MESSAGES[state.status] || { popup: "⚠️ Network status unknown.", voice: "Network status could not be determined. Please check your internet connection and restart" };
+        announceSystemMessageThrottled({ popup: msg.popup, voice: msg.voice }, { type: state.status === "stable" ? "success" : "warning" });
+        handleModelAutoSwitchLogical();
+    }, state.status === "stable" ? 2500 : 0);
 });
 
 console.log("🚀 main.js STARTED");
 
-// ===============================
-// 🌟 Gemini Models
-// ===============================
-const GEMINI_MODELS = {
-    FLASH: "gemini-2.5-flash",
-    FLASH_LITE: "gemini-2.5-flash-lite"
-};
+// ================= Gemini Logical Models (NO SDK) =================
+const GEMINI_MODELS = { FLASH: "gemini-2.5-flash", FLASH_LITE: "gemini-2.5-flash-lite" };
+let lastNotifiedModel = GEMINI_MODELS.FLASH_LITE; // logical only
+let modelReady = false;
 
-// ===============================
-// 🧪 DEBUG / CONSOLE TEST HOOKS
-// ===============================
-window.ALYNDRIK_DEBUG = {
-    updateSystemState,
-    runHealthCheck,
-    speakNatural,
-    SystemState,
-    switchGeminiModel
-};
-
-console.log("🧪 Alyndrik debug tools exposed as window.ALYNDRIK_DEBUG");
-
-document.addEventListener("DOMContentLoaded", () => {
-    const health = runHealthCheck();
-
-    // Chat message
-    addSystemMessage(health.message);
-
-    // Voice announcement
-    speakNatural(health.message);
-});
-
-let lastNotifiedModel = "gemini-2.5-flash-lite"; // default
-
-// 🔧 DEBUG OVERRIDE
-let __forceBlocked = null;
-
-function isBlockedForAutoSwitch() {
-    if (__forceBlocked !== null) return __forceBlocked;
-    return isChatTemporarilyBlocked();
+// ================= Frontend-only system instruction =================
+let cachedSystemInstruction = "";
+async function prepareSystemInstruction() {
+    let biologyText = "⚠️ Biology notes loading failed.";
+    try { biologyText = await getBiologyPdfText(); } catch {}
+    cachedSystemInstruction = `${getChatInfo()}\n\n📘 About Alyndrik & YakuwaTechnologies:\n${biologyText}`;
+    modelReady = true;
+    console.log("✅ Frontend ready. Gemini handled via server/API.");
 }
-// ===============================
-// 🔄 Auto-switch between FLASH and FLASH_LITE
-// ===============================
-async function handleModelAutoSwitch(force = false) {
-    if (!modelReady || !genAIInstance) return;
+prepareSystemInstruction();
 
+// ================= Model Auto-switch Logic (Frontend Logical Only) =================
+async function handleModelAutoSwitchLogical(force = false) {
+    if (!modelReady) return;
     const currentModel = lastNotifiedModel;
-
-    // Force Lite switch if force=true or API blocked
     if (force || currentModel !== GEMINI_MODELS.FLASH_LITE) {
-        console.log("🎯 Auto-switching to Lite model due to 429 or force.");
-        lastModelSwitchTime = Date.now();
-
-        await switchGeminiModel(GEMINI_MODELS.FLASH_LITE);
-
-        // Immediate popup and voice announcement
+        console.log("🎯 Auto-switching to Lite model (logical only).");
+        await switchGeminiModelLogical(GEMINI_MODELS.FLASH_LITE);
         announceSystemMessageThrottled({
-            popup: "⚠️ Usage limit reached. Switching to Lite AI model.",
-            voice: "Warning. The usage limit is reached. I need to switch to Lite AI model, or take a break."
+            popup: "⚠️ Usage limit reached. Switching to Lite AI model (logical).",
+            voice: "Warning. Usage limit reached. Switching to Lite AI model."
         }, { type: "warning" });
     }
 }
+window.handleModelAutoSwitch = handleModelAutoSwitchLogical;
 
-// Expose for console testing
-window.handleModelAutoSwitch = handleModelAutoSwitch;
-
-// ===============================
-// 🧪 DEBUG / CONSOLE TEST HOOKS
-// ===============================
-window.testAutoSwitch = handleModelAutoSwitch;
-window.getLastNotifiedModel = () => lastNotifiedModel;
-
-console.log("🧪 Auto-switch test helpers exposed");
-
-console.log("🧠 Model Manager loaded. Initial model:", getActiveModel());
-
-
-// Add a global flag to prevent multiple message sends simultaneously
-let isMessageProcessing = false;
-
-// ✅ Register Service Worker
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js")
-      .then(() => console.log("✅ SW registered"))
-      .catch(err => console.error("❌ SW failed:", err));
-  });
+// ================= Logical Model Switch =================
+async function switchGeminiModelLogical(newModelName) {
+    if (!modelReady) return lastNotifiedModel;
+    if (lastNotifiedModel === newModelName) return lastNotifiedModel;
+    lastNotifiedModel = newModelName;
+    console.log(`✅ Logical Gemini model switched to: ${newModelName}`);
+    speakNatural(`Switched to ${newModelName}`);
+    showToast(`Alyndrik model switched to ${newModelName}`, "success");
+    return lastNotifiedModel;
 }
 
+// ================= Chat History =================
+let messages = { history: JSON.parse(localStorage.getItem("yakuwaz_chat_history")) || [] };
+function loadChatHistory() {
+    const chatContainer = document.querySelector(".chat-window .chat");
+    if (!chatContainer) return;
+    chatContainer.innerHTML = "";
+    if (messages.history.length === 0) chatContainer.insertAdjacentHTML("beforeend", `<div class="model"><p>👋 Hi, how can I help you?</p></div>`);
+    else messages.history.forEach(msg => {
+        const className = msg.role === "user" ? "user" : "model";
+        const formattedText = formatChatResponse(msg.parts[0].text);
+        chatContainer.insertAdjacentHTML("beforeend", `<div class="${className}"><p>${formattedText}</p></div>`);
+    });
+    scrollToBottom();
+}
+
+
+
+// ================= Chat Message Handling =================
+let isMessageProcessing = false;
+
+
+
+// ================= Utils =================
+
+
+
+
+// ================= Export System Instruction =================
+window.getCachedSystemInstruction = () => cachedSystemInstruction;
+
+// ================= Safe frontend auto-switch trigger =================
+setInterval(() => { handleModelAutoSwitchLogical(); }, 5000);
+
+// ✅ Hook into page load
+window.addEventListener("load", () => {
+    if (!navigator.onLine || enforceUpdateOffline()) return;
+    loadChatHistory();
+    autoRespondOnReload();
+    checkForUpdates();
+    updateChatControlsState();
+    triggerInitialSystemAnnouncements();
+});
+
+// ================= Other functions like version check, offline handling, voice, PWA banner remain unchanged =================
 // ✅ App Version Control
 const currentAppVersion = "2.0.4";
 // Renamed to clarify its purpose: disabled specifically by version check
@@ -448,103 +398,73 @@ setInterval(async () => {
 
 
 
-// ✅ Chat State
-let messages = {
-    history: JSON.parse(localStorage.getItem("yakuwaz_chat_history")) || [],
-};
 
-let model = null;
-let genAIInstance = null;
-let cachedSystemInstruction = "";
-let modelReady = false;
 
-// ✅ Import Info Modules
-import { getChatInfo } from './AszL14YeuN4zDueR14Ib4KInfo.js';
-import { getBiologyPdfText } from './pdfInfo.js';
+// ================= SAFE FRONTEND STATE (NO GEMINI SDK) =================
 
-// ✅ Load SDK and Initialize Model
-async function loadSDK() {
-    if ('caches' in window) {
-        const cache = await caches.open('ai-sdk-cache');
-        const sdkURL = 'https://esm.run/@google/generative-ai';
-        let response = await cache.match(sdkURL);
+// ❌ Gemini SDK state REMOVED
+//let cachedSystemInstruction = "";
+//let modelReady = false;
 
-        if (!response && navigator.onLine) {
-            try {
-                response = await fetch(sdkURL);
-                if (response.ok) await cache.put(sdkURL, response.clone());
-                else return console.error("❌ Failed to fetch SDK:", response.status);
-            } catch (err) {
-                return console.error("❌ SDK network error:", err);
-            }
-        }
+// Logical model name only (UI / voice / system messages)
+//let lastNotifiedModel = "gemini-2.5-flash-lite";
 
-        if (!response) return console.error("❌ SDK not found in cache & offline.");
+// ✅ Import Info Modules (SAFE)
+//import { getChatInfo } from './AszL14YeuN4zDueR14Ib4KInfo.js';
+//import { getBiologyPdfText } from './pdfInfo.js';
 
-        const sdkBlob = await response.blob();
-        const sdkModuleURL = URL.createObjectURL(sdkBlob);
-        const module = await import(sdkModuleURL);
+// ================= SYSTEM INSTRUCTION PREP =================
 
-        // ✅ Initialize SDK instance WITHOUT API key
-        genAIInstance = new module.GoogleGenerativeAI(); // no key required in frontend
 
-        // ✅ Prepare cached system instruction
-        let biologyText = "⚠️ Biology notes loading failed.";
-        try {
-            biologyText = await getBiologyPdfText();
-        } catch (err) {
-            console.warn("⚠️ Using placeholder for biology notes.");
-        }
+// Call once on load
+prepareSystemInstruction();
 
-        cachedSystemInstruction = `${getChatInfo()}\n\n📘 About Alyndrik & YakuwaTechnologies:\n${biologyText}`;
-
-        modelReady = true;
-        console.log("✅ SDK loaded. Ready to send messages via gemini.js server function.");
-    }
-}
-
-// Periodically check every 5 seconds for auto-switch
-setInterval(() => {
-    handleModelAutoSwitch().catch(err => console.error("Auto-switch error:", err));
-}, 5000);
-
-// After your SDK loads
-modelReady = true;
-
-// ===== Gemini Auto-Switch with System Messages & Voice =====
-// just assign, do NOT redeclare
-lastNotifiedModel = lastNotifiedModel || "gemini-2.5-flash-lite";
-
+// ================= MODEL AUTO-SWITCH (LOGICAL ONLY) =================
 window.getLastNotifiedModel = () => lastNotifiedModel;
 
 window.switchGeminiModel = async (newModelName) => {
-    if (!modelReady) return lastNotifiedModel;
-    if (lastNotifiedModel === newModelName) return lastNotifiedModel;
+  if (!modelReady) return lastNotifiedModel;
+  if (lastNotifiedModel === newModelName) return lastNotifiedModel;
 
-    lastNotifiedModel = newModelName;
-    console.log(`✅ Switched Gemini model to: ${newModelName}`);
+  lastNotifiedModel = newModelName;
+  console.log(`✅ Switched logical Gemini model to: ${newModelName}`);
 
-    if (typeof sendSystemMessage === "function")
-        sendSystemMessage(`System: Switched to ${newModelName}`);
+  if (typeof sendSystemMessage === "function") {
+    sendSystemMessage(`System: Switched to ${newModelName}`);
+  }
 
-    if (typeof speakNatural === "function")
-        speakNatural(`Switched to ${newModelName}`);
+  if (typeof speakNatural === "function") {
+    speakNatural(`Switched to ${newModelName}`);
+  }
 
-    if (genAIInstance?.getGenerativeModel)
-        genAIInstance.getGenerativeModel().startChat();
-
-    return newModelName;
+  return newModelName;
 };
 
 window.testAutoSwitch = async (force) => {
-    const targetModel = force ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
-    await window.switchGeminiModel(targetModel);
+  const targetModel = force
+    ? "gemini-2.5-flash"
+    : "gemini-2.5-flash-lite";
+  await window.switchGeminiModel(targetModel);
 };
 
 window.autoSwitchGeminiModel = async () => {
-    const target = __forceBlocked ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
-    await window.switchGeminiModel(target);
+  const target = window.__forceBlocked
+    ? "gemini-2.5-flash"
+    : "gemini-2.5-flash-lite";
+  await window.switchGeminiModel(target);
 };
+
+// ================= AUTO CHECK (UI ONLY) =================
+setInterval(() => {
+  if (typeof window.autoSwitchGeminiModel === "function") {
+    window.autoSwitchGeminiModel().catch(err =>
+      console.error("Auto-switch error:", err)
+    );
+  }
+}, 5000);
+
+// ================= EXPORT SYSTEM INSTRUCTION =================
+window.getCachedSystemInstruction = () => cachedSystemInstruction;
 
 // Optional: periodic check (10s)
 //setInterval(() => {
@@ -610,33 +530,8 @@ announceSystemMessage(
 // ===============================
 // ✅ Hook into page load
 // ===============================
-window.addEventListener("load", async () => {
-    if (!navigator.onLine || enforceUpdateOffline()) return;
 
-    loadChatHistory();
-    await loadSDK();
-    autoRespondOnReload();
-    checkForUpdates();
-    updateChatControlsState();
 
-    // Trigger all initial system announcements
-    triggerInitialSystemAnnouncements();
-});
-
-// ✅ Load & Display Chat History
-function loadChatHistory() {
-    const chatContainer = document.querySelector(".chat-window .chat");
-    if (!chatContainer) return;
-    chatContainer.innerHTML = "";
-
-    if (messages.history.length === 0) chatContainer.insertAdjacentHTML("beforeend", `<div class="model"><p>👋Hi, how can I help you?</p></div>`);
-    else messages.history.forEach(msg => {
-        const className = msg.role === "user" ? "user" : "model";
-        const formattedText = formatChatResponse(msg.parts[0].text);
-        chatContainer.insertAdjacentHTML("beforeend", `<div class="${className}"><p>${formattedText}</p></div>`);
-    });
-    scrollToBottom();
-}
 
 // ✅ Scroll to Bottom
 function scrollToBottom() {
@@ -754,8 +649,8 @@ async function autoRespondOnReload() {
 
         if (lastUser && (!lastModel || messages.history.indexOf(lastUser) > messages.history.indexOf(lastModel))) {
             const chatContainer = document.querySelector(".chat-window .chat");
-            const chat = model.startChat(messages);
-            const result = await chat.sendMessageStream(lastUser.parts[0].text);
+            //const chat = model.startChat(messages);
+            //const result = await chat.sendMessageStream(lastUser.parts[0].text);
 
             if (chatContainer) chatContainer.insertAdjacentHTML("beforeend", `<div class="model"><p></p></div>`);
             scrollToBottom();
@@ -784,6 +679,7 @@ async function autoRespondOnReload() {
 // ✅ Main Send Message Function (Modified for usage tracker)
 async function sendMessage() {
     try {
+        // Check for updates first
         if (navigator.onLine) {
             await checkForUpdates(false);
         } else {
@@ -793,9 +689,13 @@ async function sendMessage() {
         console.warn("⚠️ Update check failed:", err);
     }
 
+    // Disable chat if version disallows
     if (isChatDisabledByVersion) return;
 
+    // Stop if message attempt handler fails
     if (!handleSendMessageAttempt()) return;
+
+    // Prevent double-processing
     if (isMessageProcessing) return;
     isMessageProcessing = true;
 
@@ -812,6 +712,7 @@ async function sendMessage() {
         return;
     }
 
+    // Clear input and add user message + loader
     input.value = "";
     chatContainer.insertAdjacentHTML(
         "beforeend",
@@ -822,62 +723,75 @@ async function sendMessage() {
     const loader = document.querySelector(".loader");
 
     try {
-        if (navigator.onLine && modelReady) {
-            const chat = model.startChat(messages);
-            const result = await chat.sendMessageStream(userMessage);
-
+        if (navigator.onLine) {
+            // Push user message to history
             messages.history.push({
                 role: "user",
                 parts: [{ text: userMessage }]
             });
 
+            // Prepare model message container
             chatContainer.insertAdjacentHTML(
                 "beforeend",
                 `<div class="model"><p></p></div>`
             );
+            scrollToBottom();
 
-            let modelText = "";
-            for await (const chunk of result.stream) {
-                modelText += chunk.text();
-                const replies = chatContainer.querySelectorAll(".model");
-                replies[replies.length - 1].querySelector("p").innerHTML =
-                    formatChatResponse(modelText);
-                scrollToBottom();
-            }
+            // 🌐 Call Netlify Gemini function
+            const response = await fetch("/.netlify/functions/gemini", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: userMessage, history: messages.history })
+            });
 
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const data = await response.json();
+            const modelText = data?.reply || "😴 No response from AI.";
+
+            // Update model container with response
+            const replies = chatContainer.querySelectorAll(".model");
+            replies[replies.length - 1].querySelector("p").innerHTML =
+                formatChatResponse(modelText);
+            scrollToBottom();
+
+            // Push AI response to history
             messages.history.push({
                 role: "model",
                 parts: [{ text: modelText }]
             });
 
             saveChatHistory();
+
+            // Optionally generate image/video if command detected
             maybeGenerateImage(userMessage);
             maybeGenerateVideo(userMessage);
 
         } else {
+            // Offline fallback
             chatContainer.insertAdjacentHTML(
                 "beforeend",
-                `<div class="offmodel"><p>You're offline. Check your connection.</p></div>`
+                `<div class="offmodel"><p>⚠️ You're offline. Check your connection.</p></div>`
             );
+            scrollToBottom();
         }
 
     } catch (err) {
         console.error("Alyndrik Chat Error:", err);
 
-        // 🔁 Auto-switch on rate limit
+        // Auto-switch model on rate limit
         if (err?.status === 429) {
             await handleModelAutoSwitch(true);
             speakNatural("Usage limit reached. Switching to Lite AI model.");
         }
 
+        // Random fallback messages
         const fallback = [
             "😴 Oops! Problem processing your message.",
             "👩‍💻 Slight issue with the chat. Please retry.",
             "⚠️ Service busy. Please try again shortly."
         ];
-
-        const randomMessage =
-            fallback[Math.floor(Math.random() * fallback.length)];
+        const randomMessage = fallback[Math.floor(Math.random() * fallback.length)];
 
         chatContainer.insertAdjacentHTML(
             "beforeend",
@@ -887,7 +801,9 @@ async function sendMessage() {
                 </p>
             </div>`
         );
+        scrollToBottom();
     } finally {
+        // Clean up loader and allow next message
         isMessageProcessing = false;
         if (loader) loader.remove();
         scrollToBottom();
@@ -932,12 +848,13 @@ window.addEventListener("load", () => {
     }
 
     loadChatHistory();
-    loadSDK().then(() => {
-        autoRespondOnReload();
-        checkForUpdates(); // This will call enableChatbot/disableChatbot
+    updateChatControlsState();
+    //loadSDK().then(() => {
+        //autoRespondOnReload();
+        //checkForUpdates(); // This will call enableChatbot/disableChatbot
         // After version check, ensure UI is correctly set based on both version and tracker status
-        updateChatControlsState();
-    });
+        
+    //});
 });
 
 async function switchGeminiModel(newModelName) {

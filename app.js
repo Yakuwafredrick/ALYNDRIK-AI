@@ -1,57 +1,101 @@
 import AlyndrikMemory from "./memory.js";
 
-// ⚡ Function to automatically extract memory from user messages
+/* ===============================
+   🧠 Auto Memory Extraction
+================================ */
 function autoExtractMemory(userText) {
   const lower = userText.toLowerCase().trim();
 
-  // Remember user's name
   if (lower.startsWith("my name is ")) {
     const name = userText.slice(11).trim();
     if (name) AlyndrikMemory.remember(`User's name is ${name}`, "identity");
   }
 
-  // Remember user's likes/preferences
   if (lower.includes("i like ")) {
-    const likes = userText.split("i like ")[1].split(/[.,!]/)[0].trim();
+    const likes = userText.split("i like ")[1]?.split(/[.,!]/)[0]?.trim();
     if (likes) AlyndrikMemory.remember(`User likes ${likes}`, "preference");
   }
 
-  // Remember user's role or profession
   if (lower.includes("i am a ")) {
-    const profile = userText.split("i am a ")[1].split(/[.,!]/)[0].trim();
+    const profile = userText.split("i am a ")[1]?.split(/[.,!]/)[0]?.trim();
     if (profile) AlyndrikMemory.remember(`User is ${profile}`, "profile");
   }
 }
 
-// ⚡ Add message to chat UI
+/* ===============================
+   🧠 Memory Query Detection
+================================ */
+function isMemoryQuery(text) {
+  const q = text.toLowerCase();
+  return (
+    q.includes("what do you remember") ||
+    q.includes("show memory") ||
+    q.includes("what do you know about me") ||
+    q === "memory"
+  );
+}
+
+/* ===============================
+   💬 UI Helpers
+================================ */
 function addMessage(text, isUser = false) {
-  const chatContainer = document.getElementById("chat-container");
+  const chatContainer = document.querySelector(".chat");
+  if (!chatContainer) return;
+
   const messageDiv = document.createElement("div");
   messageDiv.className = isUser ? "user" : "model";
   messageDiv.innerHTML = `<p>${text}</p>`;
+
   chatContainer.appendChild(messageDiv);
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-// ⚡ Handle user message submission
-const form = document.getElementById("chat-form");
-const input = document.getElementById("chat-input");
+/* ===============================
+   🚀 Init
+================================ */
+window.addEventListener("DOMContentLoaded", () => {
+  const input = document.querySelector(".input-area input");
+  const sendButton = document.querySelector(".input-area button");
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const userMessage = input.value.trim();
-  if (!userMessage) return;
+  if (!input || !sendButton) return;
 
-  // 1️⃣ Add message to chat UI
-  addMessage(userMessage, true);
+  sendButton.addEventListener("click", handleSend);
 
-  // 2️⃣ Auto-extract memory
-  autoExtractMemory(userMessage);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSend();
+    }
+  });
 
-  // 3️⃣ Optional: generate bot reply (placeholder)
-  const botReply = `You said: "${userMessage}"`; // Replace with AI logic
-  addMessage(botReply, false);
+  function handleSend() {
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
 
-  // Clear input
-  input.value = "";
+    // Show user message only
+    addMessage(userMessage, true);
+
+    // If user explicitly asks for memory → show it
+    if (isMemoryQuery(userMessage)) {
+      const memories = AlyndrikMemory.getAll();
+
+      if (!memories || memories.length === 0) {
+        addMessage("I don’t have any stored memory yet.", false);
+      } else {
+        const formatted = memories
+          .map(m => `• ${m.content}`)
+          .join("<br>");
+
+        addMessage(`Here’s what I remember:<br>${formatted}`, false);
+      }
+
+      input.value = "";
+      return;
+    }
+
+    // Otherwise: silently extract memory only
+    autoExtractMemory(userMessage);
+
+    input.value = "";
+  }
 });
