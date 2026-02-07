@@ -1,6 +1,6 @@
 [build]
-command = ""                      # No build step
-publish = "AszL14YeuN4zDueR14Ib4K"  # Your folder must be in the repo
+command = "npm run build"  # your build command
+publish = "dist"           # replace with your actual build output folder
 
 [functions]
-directory = "netlify/functions"   # Keep this if you have serverless functions
+directory = "netlify/functions"
